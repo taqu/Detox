@@ -1,4 +1,4 @@
-﻿#include "DetoxTestPointWanderer.h"
+#include "DetoxTestPointWanderer.h"
 
 #include <EngineGlobals.h>
 #include <RenderCore.h>
@@ -14,13 +14,6 @@
 #include <Kismet/KismetMathLibrary.h>
 
 #include "Detox.h"
-
-#if WITH_ENGINE
-// Imported from UnrealClient.cpp.
-extern ENGINE_API float GAverageFPS;
-#else
-float GAverageFPS = 0.0f;
-#endif // WITH_ENGINE
 
 ADetoxTestPointWanderer::ADetoxTestPointWanderer(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -64,7 +57,7 @@ void ADetoxTestPointWanderer::NotifySetup(UObject* Parameter)
 
 	Player->Possess(Pawn);
 
-	UE_LOG(LogDetox, Log, TEXT("%s spawned %s for %s at %s."), *GetName(), *Pawn->GetName(), *Player->GetName(), *StartingPoint->GetName());
+	UE_LOG(LogDetox, Display, TEXT("%s spawned %s for %s at %s."), *GetName(), *Pawn->GetName(), *Player->GetName(), *StartingPoint->GetName());
 }
 
 void ADetoxTestPointWanderer::EventRun_Implementation(UObject* Parameter)
@@ -85,7 +78,7 @@ void ADetoxTestPointWanderer::EventRun_Implementation(UObject* Parameter)
 	}
 
 	if(!FlightPath.IsValidIndex(CurrentTargetPointIndex)) {
-		UE_LOG(LogDetox, Log, TEXT("%s has finished."), *GetName());
+		UE_LOG(LogDetox, Display, TEXT("%s has finished."), *GetName());
 		Finish();
 		return;
 	}
@@ -96,8 +89,9 @@ void ADetoxTestPointWanderer::EventRun_Implementation(UObject* Parameter)
 	FVector ToTargetPoint = CurrentTargetPoint->GetActorLocation() - Pawn->GetActorLocation();
 	float Distance = ToTargetPoint.Size();
 
+	UE_LOG(LogDetox, Display, TEXT("%s processing %d at next %f."), *GetName(), Distance);
 	if(Distance <= AcceptanceRadius) {
-		UE_LOG(LogDetox, Log, TEXT("%s has reached %s."), *GetName(), *CurrentTargetPoint->GetName());
+		UE_LOG(LogDetox, Display, TEXT("%s has reached %s."), *GetName(), *CurrentTargetPoint->GetName());
 		++CurrentTargetPointIndex;
 		return;
 	}

@@ -24,18 +24,15 @@ void UDetoxGauntletTestController::OnInit()
 	Results.Reset();
 	const UDetoxSettings* DetoxSettings = GetDefault<UDetoxSettings>();
 
-	UAssetManager* AssetManager = UAssetManager::GetIfInitialized();
-	if(nullptr == AssetManager) {
-		return;
-	}
-	AssetManager->GetAssetRegistry().SearchAllAssets(true);
+	FAssetRegistryModule& AssetRegistryModule = FModuleManager::LoadModuleChecked<FAssetRegistryModule>(TEXT("AssetRegistry"));
 	TArray<FAssetData> AssetData;
-	AssetManager->GetAssetRegistry().GetAssetsByClass(UWorld::StaticClass()->GetFName(), AssetData);
+    AssetRegistryModule.Get().SearchAllAssets(true);
+    AssetRegistryModule.Get().GetAssetsByClass(UWorld::StaticClass()->GetFName(), AssetData);
 
 	for(auto AssetDataItr = AssetData.CreateConstIterator(); AssetDataItr; ++AssetDataItr) {
 		const FAssetData& CurrentAssetData = *AssetDataItr;
-		FString FileName = FPackageName::LongPackageNameToFilename(CurrentAssetData.GetSoftObjectPath().ToString());
-		if(!DetoxSettings->IsTestMap(FileName, CurrentAssetData.AssetName)) {
+		FString LongPackageName = CurrentAssetData.GetSoftObjectPath().ToString();
+		if(!DetoxSettings->IsTestMap(LongPackageName, CurrentAssetData.AssetName)) {
 			continue;
 		}
 		MapNames.Add(CurrentAssetData.AssetName);
@@ -59,12 +56,12 @@ void UDetoxGauntletTestController::OnInit()
 void UDetoxGauntletTestController::OnPostMapChange(UWorld* World)
 {
 	Super::OnPostMapChange(World);
-	UE_LOG(LogDetox, Log, TEXT("Detox Gauntlet - Map changed to %s"), *World->GetName());
-
+	if(IsValid(World)){
+		UE_LOG(LogDetox, Log, TEXT("Detox Gauntlet - Map changed to %s"), *World->GetName());
+	}
 	if(GetCurrentState() != UDetoxGauntletTestController::State_LoadNext) {
 		return;
 	}
-
 	GetGauntlet()->BroadcastStateChange(UDetoxGauntletTestController::State_GatherTests);
 }
 
@@ -105,6 +102,7 @@ void UDetoxGauntletTestController::OnTick(float TimeDelta)
 
 void UDetoxGauntletTestController::LoadNext()
 {
+	UE_LOG(LogDetox, Display, TEXT("Detox Gauntlet - LoadNext"));
 	++MapIndex;
 
 	// Check command line
@@ -141,6 +139,7 @@ void UDetoxGauntletTestController::LoadNext()
 
 void UDetoxGauntletTestController::OnTestSuiteFinished(ADetoxTestSuiteActor* TestSuite)
 {
+	UE_LOG(LogDetox, Display, TEXT("Detox Gauntlet - OnTestSuiteFinished"));
 	Results.Add(TestSuite->GetResult());
 	LoadNext();
 }
@@ -154,6 +153,7 @@ FString UDetoxGauntletTestController::ParseCommandLineOption(const TCHAR* Key)
 
 void UDetoxGauntletTestController::Report()
 {
+	UE_LOG(LogDetox, Display, TEXT("Detox Gauntlet - Report"));
 	const UDetoxSettings* DetoxSettings = GetDefault<UDetoxSettings>();
 	if(nullptr == DetoxSettings){
 		return;
