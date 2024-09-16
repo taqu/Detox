@@ -28,7 +28,7 @@ void UDetoxGauntletTestController::OnInit()
 	}
 	AssetManager->GetAssetRegistry().SearchAllAssets(true);
 	TArray<FAssetData> AssetData;
-	AssetManager->GetAssetRegistry().GetAssetsByClass(UWorld::StaticClass()->GetFName(), AssetData);
+	AssetManager->GetAssetRegistry().GetAssetsByClass(UWorld::StaticClass()->GetClassPathName(), AssetData);
 
 	for(auto AssetDataItr = AssetData.CreateConstIterator(); AssetDataItr; ++AssetDataItr) {
 		const FAssetData& CurrentAssetData = *AssetDataItr;
