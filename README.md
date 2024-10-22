@@ -52,6 +52,19 @@ LogDaeTest: Display: ADaeTestSuiteActor::RunNextTest - All tests finished.
 
 You'll also find a handful of example tests in the Content folder of the plugin.
 
+#
+
+```bat
+"..\..\..\Engine\UE\RunUAT.bat" ^
+ RunUnreal ^
+ -project="D:\XXX\GAME.uproject" ^
+ -scriptdir="D:\XXX" ^
+ -platform=Win64 ^
+ -configuration=Development ^
+ -build=editor ^
+ -test="Detox.Automation.DetoxGauntletTest"
+```
+
 # License
 This is released under the MIT License, and forked from [Daedalic Test Automation Plugin](https://github.com/DaedalicEntertainment/ue4-test-automation?tab=readme-ov-file#custom-test-reports).
 See `Documents/LICENSE' about original "Daedalic Test Automation Plugin" license.

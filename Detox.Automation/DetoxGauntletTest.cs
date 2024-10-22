@@ -1,4 +1,4 @@
-﻿using Gauntlet;
+using Gauntlet;
 
 namespace Detox.Automation
 {
@@ -15,7 +15,7 @@ namespace Detox.Automation
             // Start a single instance of the game.
             UnrealTestRole ClientRole = Config.RequireRole(UnrealTargetRole.Client);
             Config.MaxDuration = 2 * 60 * 60; // set timeout in seconds
-            ClientRole.Controllers.Add("DaeGauntletTestController");
+            ClientRole.Controllers.Add("DetoxGauntletTestController");
 
             // Ignore user account management.
             Config.NoMCP = true;
