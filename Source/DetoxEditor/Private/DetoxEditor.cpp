@@ -1,9 +1,10 @@
-﻿/**
+/**
  */
 #include "DetoxEditor.h"
 #include <AssetToolsModule.h>
 #include <ISettingsModule.h>
 #include <FileHelpers.h>
+#include <Misc/PackageName.h>
 #include "AssetTypeActions_DetoxTestActorBlueprint.h"
 #include "AssetTypeActions_DetoxTestSuiteActorBlueprint.h"
 #include "DetoxSettings.h"
@@ -86,12 +87,14 @@ void FDetoxEditorModule::OnTestMapsChanged()
 	// Iterate over all files, adding the ones with the map extension.
 	for(const FString& FileName: PackageFiles) {
 		bool IsMap = FPaths::GetExtension(FileName, true) == FPackageName::GetMapPackageExtension();
-		FName MapName = FName(*FPaths::GetBaseFilename(FileName));
-
-		if(IsMap && Settings->IsTestMap(FileName, MapName)) {
-
-			TSharedPtr<FDetoxEditorAutomationTest> NewTest = MakeShared<FDetoxEditorAutomationTest>(FileName);
-			AutomationTests.Add(NewTest);
+		if(IsMap){
+			FName MapName = FName(*FPaths::GetBaseFilename(FileName));
+			FString PackageName;
+			if(FPackageName::TryConvertFilenameToLongPackageName(FileName, PackageName, nullptr)
+				&& Settings->IsTestMap(PackageName, MapName)){
+				TSharedPtr<FDetoxEditorAutomationTest> NewTest = MakeShared<FDetoxEditorAutomationTest>(FileName);
+				AutomationTests.Add(NewTest);
+			}
 		}
 	}
 }

@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 /**
  */
 #include <CoreMinimal.h>
@@ -36,25 +36,27 @@ public:
 	UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName = "AfterEach"))
 	void EventAfterEach();
 
+	void SetInGauntlet();
 	void RunAll();
 
 	bool IsRunning() const;
 
 	const FDetoxTestSuiteResult& GetResult() const;
-	void GetReporters(TArray<TObjectPtr<UDetoxReporterInterface>>& Reporters) const;
-
 
 	FOnFinish OnFinished;
-
 private:
 	ADetoxTestActor* GetCurrent();
 	UObject* GetCurrentParameter(const ADetoxTestActor* Target);
 	void RunNext();
+	void Report();
 
 	UFUNCTION()
 	void OnTestSkipped(ADetoxTestActor* Test, UObject* Parameter, const FString& SkipReason);
 	UFUNCTION()
 	void OnTestFinished(ADetoxTestActor* Test, UObject* Parameter);
+
+	UPROPERTY(EditAnywhere)
+	TArray<TObjectPtr<UClass>> ReporterClasses; //!< Test reporters. Default is single JUnit reporter.
 
 	UPROPERTY(EditInstanceOnly)
 	TObjectPtr<ADetoxTestFixtureActor> Fixture;
@@ -62,10 +64,13 @@ private:
 	UPROPERTY(EditInstanceOnly)
 	TArray<TObjectPtr<ADetoxTestActor>> Tests;
 
-	UPROPERTY(EditInstanceOnly)
+	UPROPERTY(EditAnywhere)
 	bool RunInPIE;
 
-	int32 Current;
+	UPROPERTY(EditAnywhere)
+	bool ReportInEditor;
 
+	bool InGauntlet;
+	int32 Current;
 	FDetoxTestSuiteResult Result;
 };

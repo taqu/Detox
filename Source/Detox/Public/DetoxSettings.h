@@ -43,5 +43,8 @@ public:
     UPROPERTY(Config, EditAnywhere)
     TArray<FDetoxKeyValuePair> ConsoleVariables;
 
+    UPROPERTY(Config, EditAnywhere)
+    TArray<UClass*> ReporterClasses;
+
     FOnTestMapChanged OnTestMapsChanged;
 };

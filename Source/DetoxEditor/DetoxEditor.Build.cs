@@ -1,4 +1,4 @@
-﻿// Copyright 1998-2019 Epic Games, Inc. All Rights Reserved.
+// Copyright 1998-2019 Epic Games, Inc. All Rights Reserved.
 
 namespace UnrealBuildTool.Rules
 {
@@ -6,7 +6,9 @@ namespace UnrealBuildTool.Rules
     {
         public DetoxEditor(ReadOnlyTargetRules Target) : base(Target)
         {
-            PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
+            PCHUsage = PCHUsageMode.NoSharedPCHs;
+            PrivatePCHHeaderFile = "Private/DetoxEditorPrivatePCH.h";
+            CppStandard = CppStandardVersion.Cpp17;
 
             PublicIncludePaths.AddRange(
                 new string[] {

@@ -1,5 +1,7 @@
-﻿#include "DetoxEditorAutomationTestCommands.h"
+#include "DetoxEditorAutomationTestCommands.h"
 
+#include "LevelEditor.h"
+#include "Editor.h"
 #include <EngineUtils.h>
 #include "DetoxEditor.h"
 #include "DetoxTestSuiteActor.h"

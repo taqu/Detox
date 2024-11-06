@@ -1,11 +1,9 @@
 #include "DetoxTestActor.h"
-#include "DetoxReporterJUnit.h"
 
 ADetoxTestActor::ADetoxTestActor(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 	, Flags(0)
 {
-	Reporters.Add(NewObject<UDetoxReporterJUnit>());
 }
 
 void ADetoxTestActor::BeginPlay()
@@ -141,11 +139,6 @@ void ADetoxTestActor::AssertValid(UObject* Ptr, const FString& Message)
 const FDetoxTestResult& ADetoxTestActor::GetResult() const
 {
 	return Result;
-}
-
-const TArray<TObjectPtr<UDetoxReporterInterface>>& ADetoxTestActor::GetReporters() const
-{
-	return Reporters;
 }
 
 void ADetoxTestActor::EventRun_Implementation(UObject* Parameter)

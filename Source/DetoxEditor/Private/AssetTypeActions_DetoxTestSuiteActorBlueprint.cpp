@@ -1,4 +1,4 @@
-#include "AssetTypeActions_DetoxTestSuiteActorBlueprint.h"
+﻿#include "AssetTypeActions_DetoxTestSuiteActorBlueprint.h"
 #include "Detox\Public\DetoxTestSuiteActorBlueprint.h"
 #include "DetoxTestSuiteActorBlueprintFactory.h"
 #define LOCTEXT_NAMESPACE "Detox"
@@ -10,7 +10,7 @@ FAssetTypeActions_DetoxTestSuiteActorBlueprint::FAssetTypeActions_DetoxTestSuite
 
 FText FAssetTypeActions_DetoxTestSuiteActorBlueprint::GetName() const
 {
-    return NSLOCTEXT("Detox", "AssetTypeActions_DetoxTestSuiteActorBlueprint", "Test Suite Actor Blueprint");
+    return NSLOCTEXT("Detox", "AssetTypeActions_DetoxTestActorBlueprint", "Test Actor Blueprint");
 }
 
 UClass* FAssetTypeActions_DetoxTestSuiteActorBlueprint::GetSupportedClass() const

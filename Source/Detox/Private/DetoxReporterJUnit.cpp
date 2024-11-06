@@ -1,8 +1,10 @@
-﻿#include "DetoxReporterJUnit.h"
+#include "DetoxReporterJUnit.h"
 #include <Misc/CommandLine.h>
 #include <Misc/Parse.h>
 #include <Misc/Paths.h>
 #include <HAL/PlatformFilemanager.h>
+#include <GenericPlatform/GenericPlatformFile.h>
+#include <Misc/FileHelper.h>
 
 #include "Detox.h"
 #include "DetoxTestSuiteResult.h"
@@ -75,8 +77,7 @@ void UDetoxReporterJUnit::Write(const TArray<FDetoxTestSuiteResult>& Results, co
 		if(ReportPath.IsEmpty()) {
 			return;
 		}
-
-		JUnitReportPath = FPaths::Combine(ReportPath, TEXT("report_junit.xml"));
+		JUnitReportPath = ReportPath;
 	}
 
 	// Ensure report path exists.
@@ -90,7 +91,7 @@ void UDetoxReporterJUnit::Write(const TArray<FDetoxTestSuiteResult>& Results, co
 	FString XmlString;
 
 	XmlString += TEXT("<?xml version=\"1.0\" encoding=\"UTF-8\"?>") JUNIT_XML_LINE_TERMINATOR;
-	XmlString += TEXT("<testsuites>");
+	XmlString += TEXT("<testsuites>") JUNIT_XML_LINE_TERMINATOR;
 
 	for(const FDetoxTestSuiteResult& TestSuiteResult: Results)
 	{
@@ -134,8 +135,6 @@ void UDetoxReporterJUnit::Write(const TArray<FDetoxTestSuiteResult>& Results, co
 	XmlString += TEXT("</testsuites>") JUNIT_XML_LINE_TERMINATOR;
 
 	FFileHelper::SaveStringToFile(XmlString, *JUnitReportPath, FFileHelper::EEncodingOptions::ForceUTF8);
-
-	UE_LOG(LogDetox, Verbose, TEXT("Test report:\n%s"), *XmlString);
 	UE_LOG(LogDetox, Display, TEXT("Writing test report to: %s"), *JUnitReportPath);
 #undef JUNIT_XML_LINE_TERMINATOR
 }

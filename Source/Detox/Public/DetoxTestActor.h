@@ -138,7 +138,6 @@ public:
 	void AssertValid(UObject* Ptr, const FString& Message);
 
 	const FDetoxTestResult& GetResult() const;
-	const TArray<TObjectPtr<UDetoxReporterInterface>>& GetReporters() const;
 
 	FOnSkipped OnSkipped;
 	FOnFinished OnFinished;
@@ -178,9 +177,6 @@ private:
 
 	UPROPERTY(EditAnywhere)
 	FString SkipReason; //!< Message when this is skipped.
-
-	UPROPERTY(EditAnywhere)
-	TArray<TObjectPtr<UDetoxReporterInterface>> Reporters; //!< Test reporters. Default is single JUnit reporter.
 
 	FDetoxTestResult Result; //!< Set of assertions what have occurred.
 };

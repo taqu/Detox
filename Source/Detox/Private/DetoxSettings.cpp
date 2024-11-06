@@ -1,7 +1,10 @@
-﻿#include "DetoxSettings.h"
+#include "DetoxSettings.h"
+#include "Detox.h"
+#include "DetoxReporterJUnit.h"
 
 UDetoxSettings::UDetoxSettings()
 {
+	ReporterClasses.Add(UDetoxReporterJUnit::StaticClass());
 }
 
 #if WITH_EDITOR
@@ -20,14 +23,14 @@ bool UDetoxSettings::IsTestMap(const FString& FileName, const FName& MapName) co
 {
 	bool TestMap = false;
 	for(const FDirectoryPath& Directory: TestMapDirectories) {
-		TestMap |= FileName.Contains(*Directory.Path);
+		TestMap |= FileName.StartsWith(*Directory.Path) && !FileName.Contains(TEXT("_Generated_"));
 	}
 	for(const FSoftObjectPath& Path : AdditionalTestMaps){
-		TestMap |= Path.GetAssetFName() == MapName;
+		TestMap |= Path == FileName;
 	}
 
 	for(const FSoftObjectPath& Path : IgnoredMaps){
-		TestMap &= Path.GetAssetFName() != MapName;
+		TestMap &= Path != FileName;
 	}
 	return TestMap;
 }

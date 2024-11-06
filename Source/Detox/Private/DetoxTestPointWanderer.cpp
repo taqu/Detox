@@ -1,4 +1,4 @@
-﻿#include "DetoxTestPointWanderer.h"
+#include "DetoxTestPointWanderer.h"
 
 #include <EngineGlobals.h>
 #include <RenderCore.h>
@@ -14,13 +14,6 @@
 #include <Kismet/KismetMathLibrary.h>
 
 #include "Detox.h"
-
-#if WITH_ENGINE
-// Imported from UnrealClient.cpp.
-extern ENGINE_API float GAverageFPS;
-#else
-float GAverageFPS = 0.0f;
-#endif // WITH_ENGINE
 
 ADetoxTestPointWanderer::ADetoxTestPointWanderer(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -56,15 +49,13 @@ void ADetoxTestPointWanderer::NotifySetup(UObject* Parameter)
 	SpawnInfo.ObjectFlags |= RF_Transient; // We never want to save default player pawns into a map
 
 	APawn* Pawn = GetWorld()->SpawnActor<APawn>(PawnClass, SpawnTransform, SpawnInfo);
-
 	if(!IsValid(Pawn)) {
 		UE_LOG(LogDetox, Error, TEXT("%s failed to spawn pawn %s at %s."), *GetName(), *PawnClass->GetName(), *SpawnTransform.ToString());
 		return;
 	}
 
 	Player->Possess(Pawn);
-
-	UE_LOG(LogDetox, Log, TEXT("%s spawned %s for %s at %s."), *GetName(), *Pawn->GetName(), *Player->GetName(), *StartingPoint->GetName());
+	UE_LOG(LogDetox, Display, TEXT("%s spawned %s for %s at %s."), *GetName(), *Pawn->GetName(), *Player->GetName(), *StartingPoint->GetName());
 }
 
 void ADetoxTestPointWanderer::EventRun_Implementation(UObject* Parameter)
@@ -81,11 +72,13 @@ void ADetoxTestPointWanderer::EventRun_Implementation(UObject* Parameter)
 	APlayerController* Player = UGameplayStatics::GetPlayerController(this, 0);
 	APawn* Pawn = UGameplayStatics::GetPlayerPawn(this, 0);
 	if(!IsValid(Player) || !IsValid(Pawn)) {
+		Finish();
 		return;
 	}
 
 	if(!FlightPath.IsValidIndex(CurrentTargetPointIndex)) {
-		UE_LOG(LogDetox, Log, TEXT("%s has finished."), *GetName());
+		UE_LOG(LogDetox, Display, TEXT("%s has finished."), *GetName());
+		NotifyAllPointsVisited();
 		Finish();
 		return;
 	}
@@ -96,8 +89,10 @@ void ADetoxTestPointWanderer::EventRun_Implementation(UObject* Parameter)
 	FVector ToTargetPoint = CurrentTargetPoint->GetActorLocation() - Pawn->GetActorLocation();
 	float Distance = ToTargetPoint.Size();
 
+	//UE_LOG(LogDetox, Display, TEXT("%s processing %d at next %f."), *GetName(), Distance);
 	if(Distance <= AcceptanceRadius) {
-		UE_LOG(LogDetox, Log, TEXT("%s has reached %s."), *GetName(), *CurrentTargetPoint->GetName());
+		UE_LOG(LogDetox, Display, TEXT("%s has reached %s."), *GetName(), *CurrentTargetPoint->GetName());
+		NotifyReachPoint(CurrentTargetPointIndex);
 		++CurrentTargetPointIndex;
 		return;
 	}
@@ -134,4 +129,14 @@ void ADetoxTestPointWanderer::EventRun_Implementation(UObject* Parameter)
 
 		Pawn->SetActorRotation(NewRotation);
 	}
+}
+
+void ADetoxTestPointWanderer::NotifyReachPoint(int32 PointIndex)
+{
+	EventReachPoint(PointIndex);
+}
+
+void ADetoxTestPointWanderer::NotifyAllPointsVisited()
+{
+	EventAllPointsVisited();
 }

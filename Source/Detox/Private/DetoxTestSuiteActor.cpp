@@ -1,16 +1,24 @@
-﻿#include "DetoxTestSuiteActor.h"
+#include "DetoxTestSuiteActor.h"
+#include <Kismet/KismetSystemLibrary.h>
+#include <Engine/World.h>
+#include <Misc/Paths.h>
+
 #include "Detox.h"
 #include "DetoxTestFixtureActor.h"
 #include "DetoxTestActor.h"
+#include "DetoxReporterJUnit.h"
 
 ADetoxTestSuiteActor::ADetoxTestSuiteActor(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 	, Fixture(nullptr)
 	, RunInPIE(true)
+	, ReportInEditor(true)
+	, InGauntlet(false)
 	, Current(-1)
 {
 	PrimaryActorTick.bCanEverTick = true;
 	PrimaryActorTick.bTickEvenWhenPaused = true;
+	ReporterClasses.Add(UDetoxReporterJUnit::StaticClass());
 }
 
 void ADetoxTestSuiteActor::BeginPlay()
@@ -29,16 +37,13 @@ void ADetoxTestSuiteActor::Tick(float DeltaSeconds)
 	if(!IsRunning()) {
 		if(RunInPIE && GetWorld()->IsPlayInEditor() && Current < 0) {
 			RunAll();
+			return;
 		}
-		return;
 	}
 	ADetoxTestActor* Test = GetCurrent();
 	if(IsValid(Test)) {
 		UObject* Parameter = GetCurrentParameter(Test);
 		Test->Run(Parameter);
-	} else {
-		Result.EndTime = FDateTime::Now();
-		OnFinished.Broadcast(this);
 	}
 }
 
@@ -62,6 +67,11 @@ void ADetoxTestSuiteActor::NotifyAfterEach()
 	EventAfterEach();
 }
 
+void ADetoxTestSuiteActor::SetInGauntlet()
+{
+	InGauntlet = true;
+}
+
 void ADetoxTestSuiteActor::RunAll()
 {
 	UE_LOG(LogDetox, Display, TEXT("Detox Test Suite %s - Run all tests."), *GetName());
@@ -78,16 +88,6 @@ bool ADetoxTestSuiteActor::IsRunning() const
 const FDetoxTestSuiteResult& ADetoxTestSuiteActor::GetResult() const
 {
 	return Result;
-}
-
-void ADetoxTestSuiteActor::GetReporters(TArray<TObjectPtr<UDetoxReporterInterface>>& Reporters) const
-{
-	for(const TObjectPtr<ADetoxTestActor>& Test: Tests) {
-		const TArray<TObjectPtr<UDetoxReporterInterface>>& TestReporters = Test->GetReporters();
-		for(const TObjectPtr<UDetoxReporterInterface>& Reporter: TestReporters) {
-			Reporters.Add(Reporter);
-		}
-	}
 }
 
 ADetoxTestActor* ADetoxTestSuiteActor::GetCurrent()
@@ -122,7 +122,39 @@ void ADetoxTestSuiteActor::RunNext()
 	} else {
 		// All tests finished
 		UE_LOG(LogDetox, Display, TEXT("Detox Test Suite %s - All tests finished."), *GetName());
+		Result.EndTime = FDateTime::Now();
+		if(!InGauntlet && ReportInEditor){
+			Report();
+		}
 		NotifyAfterAll();
+		OnFinished.Broadcast(this);
+	}
+}
+
+void ADetoxTestSuiteActor::Report()
+{
+	FString ReportPath = FPaths::AutomationReportsDir();
+	if (ReportPath.IsEmpty()) {
+		return;
+	}
+	TArray<TObjectPtr<UDetoxReporterInterface>> Reporters;
+	for (TObjectPtr<UClass>& ReporterClass : ReporterClasses) {
+		UDetoxReporterInterface* Reporter = NewObject<UDetoxReporterInterface>((UObject*)GetTransientPackage(), ReporterClass);
+		if(nullptr == Reporter){
+			continue;
+		}
+		Reporters.Add(Reporter);
+	}
+
+	FString PlatformName(FPlatformProperties::PlatformName());
+	PlatformName.ToLowerInline();
+	FDateTime Now = FDateTime::Now();
+	FString FileName = TEXT("report_") + PlatformName + TEXT("_") + Now.ToFormattedString(TEXT("%Y%m%d_%H%M%S")) + TEXT(".xml");
+	ReportPath = FPaths::Combine(ReportPath, FileName);
+	ReportPath = FPaths::ConvertRelativePathToFull(ReportPath);
+	TArray<FDetoxTestSuiteResult> Results = {Result};
+	for (const TObjectPtr<UDetoxReporterInterface>& Reporter : Reporters) {
+		Reporter->Write(Results, ReportPath);
 	}
 }
 
@@ -139,6 +171,7 @@ void ADetoxTestSuiteActor::OnTestFinished(ADetoxTestActor* Test, UObject* Parame
 {
 	if(IsValid(Test)) {
 		UE_LOG(LogDetox, Display, TEXT("Detox Test Suite %s - A test %s finished."), *GetName(), *Test->GetName());
+		Result.Results.Add(Test->GetResult());
 	}
 	NotifyAfterEach();
 	RunNext();

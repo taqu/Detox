@@ -1,11 +1,13 @@
-﻿
+
 namespace UnrealBuildTool.Rules
 {
     public class Detox : ModuleRules
     {
         public Detox(ReadOnlyTargetRules Target) : base(Target)
         {
-            PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
+            PCHUsage = PCHUsageMode.NoSharedPCHs;
+            PrivatePCHHeaderFile = "Private/DetoxPrivatePCH.h";
+            CppStandard = CppStandardVersion.Cpp17;
 
             PublicIncludePaths.AddRange(
                 new string[] {
@@ -30,6 +32,7 @@ namespace UnrealBuildTool.Rules
                     "RenderCore",
                     "Projects",
                     "AssetRegistry",
+                    "EngineSettings",
                 }
                 );
 
